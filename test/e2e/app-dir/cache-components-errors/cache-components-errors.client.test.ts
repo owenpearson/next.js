@@ -122,7 +122,7 @@ describe('Cache Components Errors - Client Components', () => {
                    https://nextjs.org/docs/messages/blocking-prerender-dynamic#wrap-in-or-move-into-suspense
                  - [cache] If the runtime data is \`params\` and they're known, prerender them with \`generateStaticParams\`
                    https://nextjs.org/docs/messages/blocking-prerender-runtime#for-known-params-prerender
-                 - [block] Set \`export const unstable_instant = false\` to silence this warning and allow a blocking route
+                 - [block] Set \`export const instant = false\` to silence this warning and allow a blocking route
                    https://nextjs.org/docs/messages/blocking-prerender-dynamic#allow-blocking-route
                    at Client (app/client-awaited-io/client.tsx:6:19)
                    at Page (app/client-awaited-io/page.tsx:5:10)
@@ -152,7 +152,7 @@ describe('Cache Components Errors - Client Components', () => {
                    https://nextjs.org/docs/messages/blocking-prerender-dynamic#wrap-in-or-move-into-suspense
                  - [cache] If the runtime data is \`params\` and they're known, prerender them with \`generateStaticParams\`
                    https://nextjs.org/docs/messages/blocking-prerender-runtime#for-known-params-prerender
-                 - [block] Set \`export const unstable_instant = false\` to silence this warning and allow a blocking route
+                 - [block] Set \`export const instant = false\` to silence this warning and allow a blocking route
                    https://nextjs.org/docs/messages/blocking-prerender-dynamic#allow-blocking-route
                    at <unknown> (app/client-awaited-io/client.tsx:5:26)
                    at body (<anonymous>)
@@ -185,7 +185,7 @@ describe('Cache Components Errors - Client Components', () => {
                    https://nextjs.org/docs/messages/blocking-prerender-dynamic#wrap-in-or-move-into-suspense
                  - [cache] If the runtime data is \`params\` and they're known, prerender them with \`generateStaticParams\`
                    https://nextjs.org/docs/messages/blocking-prerender-runtime#for-known-params-prerender
-                 - [block] Set \`export const unstable_instant = false\` to silence this warning and allow a blocking route
+                 - [block] Set \`export const instant = false\` to silence this warning and allow a blocking route
                    https://nextjs.org/docs/messages/blocking-prerender-dynamic#allow-blocking-route
                    at Client (webpack:///app/client-awaited-io/client.tsx:6:19)
                    at Page (webpack:///app/client-awaited-io/page.tsx:5:10)
@@ -215,7 +215,7 @@ describe('Cache Components Errors - Client Components', () => {
                    https://nextjs.org/docs/messages/blocking-prerender-dynamic#wrap-in-or-move-into-suspense
                  - [cache] If the runtime data is \`params\` and they're known, prerender them with \`generateStaticParams\`
                    https://nextjs.org/docs/messages/blocking-prerender-runtime#for-known-params-prerender
-                 - [block] Set \`export const unstable_instant = false\` to silence this warning and allow a blocking route
+                 - [block] Set \`export const instant = false\` to silence this warning and allow a blocking route
                    https://nextjs.org/docs/messages/blocking-prerender-dynamic#allow-blocking-route
                    at a (<next-dist-dir>)
                    at b (<next-dist-dir>)
