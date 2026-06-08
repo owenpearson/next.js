@@ -1163,6 +1163,12 @@ export interface ExperimentalConfig {
   globalNotFound?: boolean
 
   /**
+   * @experimental Use the Rust port of the React compiler (Turbopack only).
+   * Requires `reactCompiler` to be enabled.
+   */
+  rustReactCompiler?: boolean
+
+  /**
    * Enable debug information to be forwarded from browser to dev server stdout/stderr.
    *
    * - `'warn'` (default): Forward warnings and errors to terminal

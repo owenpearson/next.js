@@ -232,6 +232,7 @@ impl ModuleOptions {
             ecmascript:
                 EcmascriptOptionsContext {
                     enable_jsx,
+                    enable_rust_react_compiler,
                     enable_types,
                     ref enable_typescript_transform,
                     ref enable_decorators,
@@ -301,6 +302,13 @@ impl ModuleOptions {
         let mut ecma_preprocess = vec![];
         let mut postprocess = vec![];
 
+        // Rust React compiler runs first (before TypeScript stripping and JSX transform) so that
+        // the emitted source text matches the original file as closely as possible. This matters
+        // for the text-bridge approach where we re-parse after react_compiler_swc.
+        if let Some(compilation_mode) = enable_rust_react_compiler {
+            ecma_preprocess.push(EcmascriptInputTransform::ReactCompilerRust { compilation_mode });
+        }
+
         // Order of transforms is important. e.g. if the React transform occurs before
         // Styled JSX, there won't be JSX nodes for Styled JSX to transform.
         // If a custom plugin requires specific order _before_ core transform kicks in,
@@ -354,6 +362,11 @@ impl ModuleOptions {
         } else {
             None
         };
+
+        // Save the non-decorator preprocess items (e.g. ReactCompilerRust) so they can be
+        // included in the TypeScript preprocess chain below. TypeScript files otherwise only
+        // get [Decorators, TypeScript] and miss transforms added to ecma_preprocess.
+        let extra_preprocess = ecma_preprocess.clone();
 
         if let Some(decorators_transform) = &decorators_transform {
             // Apply decorators transform for the ModuleType::Ecmascript as well after
@@ -723,10 +736,13 @@ impl ModuleOptions {
 
         if let Some(options) = enable_typescript_transform {
             let options = options.await?;
+            // extra_preprocess contains transforms like ReactCompilerRust that apply to all
+            // module types. They run first (before decorators and TypeScript type stripping)
+            // so they see the original source as written.
             let ts_preprocess = ResolvedVc::cell(
-                decorators_transform
-                    .clone()
+                extra_preprocess
                     .into_iter()
+                    .chain(decorators_transform.clone())
                     .chain(std::iter::once(EcmascriptInputTransform::TypeScript {
                         use_define_for_class_fields: options.use_define_for_class_fields,
                         verbatim_module_syntax: options.verbatim_module_syntax,

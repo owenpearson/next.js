@@ -29,7 +29,10 @@ use turbopack_core::{
     module_graph::style_groups::StyleGroupsAlgorithm,
     resolve::ResolveAliasMap,
 };
-use turbopack_ecmascript::{OptionTreeShaking, TreeShakingMode};
+use turbopack_ecmascript::{
+    OptionTreeShaking, TreeShakingMode,
+    transform::{OptionRustReactCompilerCompilationMode, RustReactCompilerCompilationMode},
+};
 use turbopack_ecmascript_plugins::transform::{
     emotion::EmotionTransformConfig, relay::RelayConfig,
     styled_components::StyledComponentsTransformConfig,
@@ -1322,6 +1325,9 @@ pub struct ExperimentalConfig {
     turbopack_local_postcss_config: Option<bool>,
     // Whether to enable the global-not-found convention
     global_not_found: Option<bool>,
+    /// Experimental: use the Rust port of the React compiler (Turbopack only).
+    /// Requires `reactCompiler` to be enabled.
+    rust_react_compiler: Option<bool>,
     /// Defaults to false in development mode, true in production mode.
     turbopack_remove_unused_imports: Option<bool>,
     /// Defaults to false in development mode, true in production mode.
@@ -2121,6 +2127,31 @@ impl NextConfig {
         };
 
         options.cell()
+    }
+
+    /// Returns the Rust React compiler's compilation mode when both `reactCompiler` and the
+    /// experimental `rustReactCompiler` flag are enabled. `None` means the Rust compiler is
+    /// disabled (either because the React compiler is off, or because the Rust port isn't opted
+    /// into).
+    #[turbo_tasks::function]
+    pub fn rust_react_compiler(&self) -> Vc<OptionRustReactCompilerCompilationMode> {
+        let use_rust = self.experimental.rust_react_compiler.unwrap_or(false);
+        let mode = match (use_rust, &self.react_compiler) {
+            (true, Some(ReactCompilerOptionsOrBoolean::Boolean(true))) => {
+                Some(RustReactCompilerCompilationMode::default())
+            }
+            (true, Some(ReactCompilerOptionsOrBoolean::Option(opts))) => {
+                Some(match opts.compilation_mode {
+                    ReactCompilerCompilationMode::Infer => RustReactCompilerCompilationMode::Infer,
+                    ReactCompilerCompilationMode::Annotation => {
+                        RustReactCompilerCompilationMode::Annotation
+                    }
+                    ReactCompilerCompilationMode::All => RustReactCompilerCompilationMode::All,
+                })
+            }
+            _ => None,
+        };
+        Vc::cell(mode)
     }
 
     #[turbo_tasks::function]

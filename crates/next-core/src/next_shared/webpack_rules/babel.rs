@@ -119,10 +119,14 @@ pub async fn get_babel_loader_rules(
     }
 
     let react_compiler_options = next_config.react_compiler_options().await?;
+    let use_rust_react_compiler = next_config.rust_react_compiler().await?.is_some();
 
-    // if there's no babel config and react-compiler shouldn't be enabled, bail out early
+    // if there's no babel config and react-compiler shouldn't be enabled, bail out early.
+    // also bail when the native Rust React Compiler is active with no custom babel config —
+    // the babel loader has nothing to do in that case.
     if babel_config_path.is_none()
         && (react_compiler_options.is_none()
+            || use_rust_react_compiler
             || !builtin_conditions.contains(&WebpackLoaderBuiltinCondition::Browser))
     {
         return Ok(Vec::new());
@@ -151,6 +155,7 @@ pub async fn get_babel_loader_rules(
 
     let mut loader_conditions = Vec::new();
     if let Some(react_compiler_options) = react_compiler_options.as_ref()
+        && !use_rust_react_compiler
         && let Some(babel_plugin_path) =
             resolve_babel_plugin_react_compiler(next_config, project_path).await?
     {
