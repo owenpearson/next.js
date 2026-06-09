@@ -464,7 +464,7 @@ pub fn project_new(
             PathBuf::from(&options.root_path)
                 .join(&options.project_path)
                 .join(".next-profiles")
-                .join("trace-turbopack")
+                .join("trace-turbopack.bin")
         };
         let trace_dir = trace_file
             .parent()
