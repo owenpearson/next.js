@@ -270,45 +270,71 @@ function createRenderSearchParams(
   requestStore: RequestStore,
   isRuntimePrefetchable: boolean
 ): Promise<SearchParams> {
+  const { asyncApiPromises, validationSamples } = requestStore
+  if (asyncApiPromises) {
+    const userspaceSearchParams = validationSamples
+      ? createSearchParamsProxyForInstantValidation(
+          workStore,
+          validationSamples,
+          underlyingSearchParams
+        )
+      : underlyingSearchParams
+    return createStagedRenderSearchParams(
+      asyncApiPromises,
+      isRuntimePrefetchable,
+      userspaceSearchParams
+    )
+  }
+
   if (workStore.forceStatic) {
     // When using forceStatic we override all other logic and always just return an empty
     // dictionary object.
     return Promise.resolve({})
-  } else {
-    if (process.env.NODE_ENV === 'development') {
-      // Semantically we only need the dev tracking when running in `next dev`
-      // but since you would never use next dev with production NODE_ENV we use this
-      // as a proxy so we can statically exclude this code from production builds.
-      return makeUntrackedSearchParamsWithDevWarnings(
-        underlyingSearchParams,
-        workStore,
-        requestStore,
-        isRuntimePrefetchable
-      )
-    } else if (requestStore.asyncApiPromises) {
-      if (requestStore.validationSamples) {
-        const { createExhaustiveSearchParamsProxy } =
-          require('../app-render/instant-validation/instant-samples') as typeof import('../app-render/instant-validation/instant-samples')
-        const declaredKeys = new Set(
-          Object.keys(requestStore.validationSamples.searchParams ?? {})
-        )
-        underlyingSearchParams = createExhaustiveSearchParamsProxy(
-          underlyingSearchParams,
-          declaredKeys,
-          workStore.route
-        )
-      }
-
-      return makePromiseFromTrigger(
-        isRuntimePrefetchable
-          ? requestStore.asyncApiPromises.earlySharedSearchParamsParent
-          : requestStore.asyncApiPromises.sharedSearchParamsParent,
-        underlyingSearchParams
-      )
-    } else {
-      return makeUntrackedSearchParams(underlyingSearchParams)
-    }
   }
+
+  if (process.env.NODE_ENV === 'development') {
+    // Semantically we only need the dev tracking when running in `next dev`
+    // but since you would never use next dev with production NODE_ENV we use this
+    // as a proxy so we can statically exclude this code from production builds.
+    return makeUntrackedSearchParamsWithDevWarnings(
+      underlyingSearchParams,
+      workStore,
+      requestStore,
+      isRuntimePrefetchable
+    )
+  } else {
+    return makeUntrackedSearchParams(underlyingSearchParams)
+  }
+}
+
+function createStagedRenderSearchParams(
+  asyncApiPromises: NonNullable<RequestStore['asyncApiPromises']>,
+  isRuntimePrefetchable: boolean,
+  userspaceSearchParams: SearchParams
+) {
+  return makePromiseFromTrigger(
+    isRuntimePrefetchable
+      ? asyncApiPromises.earlySharedSearchParamsParent
+      : asyncApiPromises.sharedSearchParamsParent,
+    userspaceSearchParams
+  )
+}
+
+function createSearchParamsProxyForInstantValidation(
+  workStore: WorkStore,
+  validationSamples: NonNullable<RequestStore['validationSamples']>,
+  underlyingSearchParams: SearchParams
+) {
+  const { createExhaustiveSearchParamsProxy } =
+    require('../app-render/instant-validation/instant-samples') as typeof import('../app-render/instant-validation/instant-samples')
+  const declaredKeys = new Set(
+    Object.keys(validationSamples.searchParams ?? {})
+  )
+  return createExhaustiveSearchParamsProxy(
+    underlyingSearchParams,
+    declaredKeys,
+    workStore.route
+  )
 }
 
 interface CacheLifetime {}

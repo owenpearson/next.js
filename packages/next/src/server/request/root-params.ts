@@ -149,13 +149,18 @@ export function getRootParam(paramName: string): Promise<ParamValue> {
 
       const { stagedRendering } = workUnitStore
       if (stagedRendering && process.env.__NEXT_APP_SHELLS) {
+        // If we're rendering for cached navs, we only need
+        // to recover a static shell and a static stage, so we can
+        // resolve root params here. it means we can't get a session shell,
+        // but that's okay because we get that from a separate render anyway.
+        // In dev, we might want to recover a session shell for validation instead
+        // (indicated by `needsSessionShell`)
+        const stage = workUnitStore.needsSessionShell
+          ? getRuntimeLinkDataStage(stagedRendering)
+          : getStaticLinkDataStage(stagedRendering)
         return createRootParamPromiseForShellRender(
           stagedRendering,
-          // Assuming we're rendering for cached navs, we only need
-          // to recover a static shell and a static stage, so we can
-          // resolve root params here. it means we can't get a session shell,
-          // but that's okay because we get that from a separate render anyway.
-          getStaticLinkDataStage(stagedRendering),
+          stage,
           apiName,
           paramName,
           workUnitStore.rootParams[paramName]
